@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Downloader YouTube</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+        }
+        .video-thumbnail {
+            max-width: 300px;
+            border-radius: 8px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Website Downloader YouTube</h1>
+    <div class="container">
+        <form id="convert-form">
+            <label for="youtube-url">Masukkan URL Video YouTube:</label>
+            <input type="text" id="youtube-url" placeholder="Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ" required>
+            <button type="submit">Unduh Video</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('convert-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const url = document.getElementById('youtube-url').value.trim();
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+        
+            if (!url) {
+                resultDiv.innerHTML = '<span class="error">Link YouTube tidak boleh kosong.</span>';
+                return;
+            }
+        
+            resultDiv.innerHTML = 'Memproses...';
+        
+            try {
+                const apiUrl = `https://website-downloader-production.up.railway.app/get-video-info?url=${encodeURIComponent(url)}`;
+                const response = await fetch(apiUrl, { mode: 'cors' });
+                if (!response.ok) throw new Error('Gagal menghubungi server.');
+        
+                const data = await response.json();
+        
+                // Tampilkan informasi video
+                resultDiv.innerHTML = `
+                    <h3>Informasi Video</h3>
+                    <p><strong>Judul:</strong> ${data.title}</p>
+                    <p><strong>Durasi:</strong> ${data.duration}</p>
+                    <p><strong>Thumbnail:</strong><br><img src="${data.thumbnail}" class="video-thumbnail"></p>
+                    <h4>Download Link:</h4>
+                    <ul>
+                        ${data.formats.map(format => `
+                            <li>
+                                <a href="${format.url}" target="_blank">${format.quality} (${format.mimeType})</a>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } catch (err) {
+                resultDiv.innerHTML = `<span class="error">Terjadi kesalahan: ${err.message}</span>`;
+            }
+        });
+    </script>
+
+</body>
+</html>
